@@ -1,0 +1,27 @@
+name: Gitspatch Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      event_id:
+        description: 'Event ID from Gitspatch'
+        required: true
+      event_payload:
+          description: 'Original webhook payload as string'
+          required: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gitspatch/action@main
+        id: gitspatch
+        with:
+          event_id: ${{ github.event.inputs.event_id }}
+          event_payload: ${{ github.event.inputs.event_payload }}
+      - name: Handle event
+        run: echo '${{ github.event.inputs.event_payload }}' | jq
